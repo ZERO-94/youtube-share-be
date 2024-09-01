@@ -138,6 +138,7 @@ export class VideosService {
           },
         },
       ])
+      .sort({ createdAt: -1 })
       .exec();
 
     return videos;
