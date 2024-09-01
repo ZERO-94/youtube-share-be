@@ -25,6 +25,16 @@ export class Video {
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   sharedBy: User;
+
+  @Prop({
+    type: [
+      {
+        type: { type: String },
+        reactedBy: { type: MongooseSchema.Types.ObjectId, ref: 'User' },
+      },
+    ],
+  })
+  reactions: { type: string; reactedBy: User }[];
 }
 
 export const VideoSchema = SchemaFactory.createForClass(Video);

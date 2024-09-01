@@ -2,22 +2,22 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideosService } from './videos.service';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { ReactVideoDto } from './dto/react-video.dto';
 
 @Controller('videos')
-@UseGuards(JwtAuthGuard)
 export class VideosController {
   constructor(private readonly videosService: VideosService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Request() req, @Body() createVideoDto: CreateVideoDto) {
     const user = req.user;
@@ -32,13 +32,25 @@ export class VideosController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/react')
+  async reactAVideo(
+    @Request() req,
+    @Body() reactVideoDto: ReactVideoDto,
+    @Param('id') videoId: string,
+  ) {
+    const user = req.user;
+
+    const res = await this.videosService.react(
+      videoId,
+      user._id,
+      reactVideoDto.type,
+    );
+    return res;
+  }
+
   @Get()
   findAll() {
     return this.videosService.findAll();
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.videosService.remove(id);
   }
 }
