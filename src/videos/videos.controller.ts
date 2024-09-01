@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -56,6 +57,16 @@ export class VideosController {
       user._id,
       reactVideoDto.type,
     );
+    return res;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/react')
+  async deleteReactAVideo(@Request() req, @Param('id') videoId: string) {
+    const user = req.user;
+
+    const res = await this.videosService.deleteReaction(videoId, user._id);
+
     return res;
   }
 

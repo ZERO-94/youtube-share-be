@@ -17,13 +17,10 @@ export class SocketGateway implements OnGatewayConnection {
 
   @UseGuards(JwtWsGuard)
   handleConnection(socket: Socket): void {
-    console.log('Client connected:', socket.id);
     this.socketService.handleConnection(socket);
   }
 
-  handleDisconnect(client: Socket) {
-    console.log('Client disconnected:', client.id);
-  }
+  handleDisconnect(client: Socket) {}
 
   // Implement other Socket.IO event handlers and message handlers
 }

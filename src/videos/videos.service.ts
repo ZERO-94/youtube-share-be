@@ -165,4 +165,24 @@ export class VideosService {
 
     return video.save();
   }
+
+  async deleteReaction(videoId: string, userId: string) {
+    const video = await this.videoModel.findOne({ videoId: videoId });
+    if (!video) {
+      throw new BadRequestException('Video not found');
+    }
+
+    const reactedBy = video.reactions.find(
+      (reaction) => reaction.reactedBy.toString() === userId,
+    );
+    if (!reactedBy) {
+      throw new BadRequestException('Reaction not found');
+    }
+
+    video.reactions = video.reactions.filter(
+      (reaction) => reaction.reactedBy.toString() !== userId,
+    );
+
+    return video.save();
+  }
 }
