@@ -12,10 +12,16 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideosService } from './videos.service';
 import { ReactVideoDto } from './dto/react-video.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { OptionalJwtAuthGuard } from 'src/guards/optional-jwt-auth.guard';
+import { SocketService } from 'src/socket/socket/socket.service';
 
 @Controller('videos')
 export class VideosController {
-  constructor(private readonly videosService: VideosService) {}
+  constructor(
+    private readonly videosService: VideosService,
+    private readonly socketService: SocketService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
@@ -23,6 +29,10 @@ export class VideosController {
     const user = req.user;
     try {
       const res = await this.videosService.create(createVideoDto, user._id);
+      this.socketService.sendMessageToAll('new-video', {
+        message: 'New video is shared!',
+        videoData: res,
+      });
       return res;
     } catch (e) {
       if (e.code === 11000) {
@@ -49,8 +59,9 @@ export class VideosController {
     return res;
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get()
-  findAll() {
-    return this.videosService.findAll();
+  findAll(@Request() req) {
+    return this.videosService.findAll(req?.user?._id);
   }
 }

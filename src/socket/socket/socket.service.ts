@@ -20,5 +20,11 @@ export class SocketService {
     console.log(`Received event: ${data}`);
   }
 
+  sendMessageToAll(event: string, data: any): void {
+    this.connectedClients.forEach((socket) => {
+      socket.emit(event, data);
+    });
+  }
+
   // Add more methods for handling events, messages, etc.
 }

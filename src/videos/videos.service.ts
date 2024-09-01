@@ -2,9 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Video } from 'src/schemas/video.schema';
-import { Model, Schema as MongooseSchema } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { SocketService } from 'src/socket/socket/socket.service';
 
 @Injectable()
 export class VideosService {
@@ -59,11 +60,7 @@ export class VideosService {
   }
 
   async findAll(reactUserId?: string) {
-    const matchStage = reactUserId
-      ? {
-          'reactions.reactedBy': new MongooseSchema.Types.ObjectId(reactUserId),
-        }
-      : {};
+    const objectIdUser = reactUserId ? new Types.ObjectId(reactUserId) : null;
 
     const videos = await this.videoModel
       .aggregate([
@@ -97,20 +94,21 @@ export class VideosService {
                 },
               },
             },
-            userReacted: reactUserId
+            userReaction: objectIdUser
               ? {
-                  $in: [
-                    reactUserId
-                      ? new MongooseSchema.Types.ObjectId(reactUserId)
-                      : null,
-                    '$reactions.reactedBy',
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: { $ifNull: ['$reactions', []] },
+                        as: 'reaction',
+                        cond: { $eq: ['$$reaction.reactedBy', objectIdUser] },
+                      },
+                    },
+                    0,
                   ],
                 }
-              : false,
+              : null,
           },
-        },
-        {
-          $match: matchStage,
         },
         {
           $project: {
@@ -127,7 +125,14 @@ export class VideosService {
             },
             totalLikes: 1,
             totalDislikes: 1,
-            userReacted: 1,
+            userReacted: {
+              $cond: {
+                if: { $ne: ['$userReaction', null] },
+                then: true,
+                else: false,
+              },
+            },
+            userReactionType: { $ifNull: ['$userReaction.type', null] },
             createdAt: 1,
             updatedAt: 1,
           },
@@ -139,7 +144,7 @@ export class VideosService {
   }
 
   async react(videoId: string, userId: string, reaction: string) {
-    const video = await this.videoModel.findById(videoId);
+    const video = await this.videoModel.findOne({ videoId: videoId });
     if (!video) {
       throw new BadRequestException('Video not found');
     }
