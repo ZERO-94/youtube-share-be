@@ -5,7 +5,6 @@ import { Video } from 'src/schemas/video.schema';
 import { Model, Types } from 'mongoose';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
-import { SocketService } from 'src/socket/socket/socket.service';
 
 @Injectable()
 export class VideosService {
