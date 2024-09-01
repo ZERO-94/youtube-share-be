@@ -25,12 +25,10 @@ Follow these steps to set up the project:
    cd youtube-share-backend
 2. **Install dependencies**
     ```sh
-    Copy code
     npm install
     Configure environment variables
 3. **Create a .env file in the project root:**
     ```sh
-    Copy code
     cp .env.example .env
     Modify the .env file with your configuration settings.
 4. **Retrieve your YOUTUBE API from Google Console**
